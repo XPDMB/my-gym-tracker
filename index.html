@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Avatar World - PRIMORAS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    </script>
+    <style>
+      :root {
+        --bg-color: #050505;
+        --text-color: #ffffff;
+        --subtitle-color: #a0a0a0;
+      }
+      html.light-mode {
+        --bg-color: #f0f0f0;
+        --text-color: #111111;
+        --subtitle-color: #555555;
+      }
+      
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Rockwell', serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        transition: background-color 0.5s, color 0.5s;
+      }
+
+      #bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        filter: brightness(0.65); 
+        transition: filter 0.5s;
+      }
+      html.light-mode #bg-canvas {
+        filter: brightness(1) invert(0.85); /* Invert 3D background for light mode */
+      }
+
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem 4rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+      }
+
+      .logo {
+        font-weight: 900;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-color);
+      }
+      .logo svg { stroke: var(--text-color); transition: 0.5s; }
+
+      .settings-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      .toggle-btn {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(150, 150, 150, 0.5);
+        color: var(--text-color);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: 0.3s;
+        backdrop-filter: blur(10px);
+        font-weight: bold;
+      }
+      html.light-mode .toggle-btn {
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(0,0,0,0.2);
+      }
+      .toggle-btn:hover {
+        background: var(--text-color);
+        color: var(--bg-color);
+      }
+
+      .hero {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-content {
+        max-width: 1000px;
+        padding: 0 2rem;
+      }
+
+      h1 {
+        font-size: clamp(3rem, 8vw, 7rem);
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 2rem;
+        color: var(--text-color);
+        text-shadow: 0 0 40px rgba(150, 150, 150, 0.2);
+        transition: 0.5s;
+      }
+
+      .subtitle {
+        font-size: 0.9rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--subtitle-color);
+        margin-bottom: 4rem;
+        transition: 0.5s;
+      }
+
+      /* Home Mode Switcher based on User Image */
+      .home-modes {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 4rem;
+      }
+      .home-mode-btn {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-size: 1.5rem;
+        font-weight: 900;
+        letter-spacing: 2px;
+        transition: 0.3s;
+        border: 2px solid;
+      }
+      .home-mode-btn.running {
+        background: #444444;
+        color: white;
+        border-color: #666;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      }
+      .home-mode-btn.running:hover {
+        background: #555;
+        transform: scale(1.05);
+      }
+      
+      .home-mode-btn.hyrox {
+        background: #ffcc00;
+        color: black;
+        border-color: #000;
+        box-shadow: 0 0 30px rgba(255,204,0,0.5);
+      }
+      .home-mode-btn.hyrox:hover {
+        background: #ffdd33;
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(255,204,0,0.8);
+      }
+
+      .scroll-indicator {
+        font-size: 0.8rem;
+        letter-spacing: 4px;
+        color: var(--subtitle-color);
+        text-transform: uppercase;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% { opacity: 0.5; }
+        50% { opacity: 1; }
+        100% { opacity: 0.5; }
+      }
+
+      .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem 4rem;
+        display: flex;
+        justify-content: space-between;
+        z-index: 10;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        color: var(--subtitle-color);
+      }
+      .footer .footer-item { cursor: pointer; transition: 0.3s; }
+      .footer .footer-item:hover { color: var(--text-color); }
+      .footer .footer-item:first-child { color: var(--text-color); font-size: 1.2rem; font-weight: bold; }
+      
+      @media (max-width: 768px) {
+        .home-modes { flex-direction: column; gap: 1rem; }
+        .navbar, .footer { padding: 1.5rem; }
+        .footer { flex-wrap: wrap; gap: 10px; justify-content: center; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="bg-canvas"></canvas>
+    
+    <nav class="navbar">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke-width="2"/>
+          <path d="M8 12L12 16L16 8" stroke-width="2"/>
+        </svg>
+        PRIMORAS
+      </div>
+    </nav>
+
+    <main class="hero">
+      <div class="hero-content">
+        <h1 id="hero-title">GO TO FUCKING<br>GYM</h1>
+        <p class="subtitle" id="hero-subtitle">STOP MAKING EXCUSES AND START PUSHING YOUR LIMITS</p>
+        
+        <div class="home-modes">
+          <a href="explore.html?mode=running" class="home-mode-btn running">
+            🏃‍♂️ RUNNING
+          </a>
+          <a href="explore.html?mode=hyrox" class="home-mode-btn hyrox">
+            🏋️‍♂️ HYROX
+          </a>
+        </div>
+        
+        <div class="scroll-indicator" id="hero-scroll">
+          SCROLL DOWN TO EXPLORE
+        </div>
+      </div>
+    </main>
+    
+    <footer class="footer">
+      <div class="footer-item" id="ft-about">ABOUT US</div>
+      <div class="settings-group">
+        <button class="toggle-btn" id="lang-toggle">TH</button>
+        <button class="toggle-btn" id="theme-toggle">☀️ LIGHT</button>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+
+    <script>
+      // LANGUAGE DICTIONARY
+      const translations = {
+        'en': {
+          heroTitle: "GO TO FUCKING<br>GYM",
+          heroSubtitle: "STOP MAKING EXCUSES AND START PUSHING YOUR LIMITS",
+          heroScroll: "SCROLL DOWN TO EXPLORE",
+          ftAbout: "ABOUT US",
+          langBtn: "TH",
+          themeLight: "☀️ LIGHT",
+          themeDark: "🌙 DARK"
+        },
+        'th': {
+          heroTitle: "GO TO FUCKING<br>GYM",
+          heroSubtitle: "เลิกหาข้ออ้าง แล้วไปสร้างความเปลี่ยนแปลงซะ",
+          heroScroll: "เลื่อนลงเพื่อสำรวจ",
+          ftAbout: "เกี่ยวกับเรา",
+          langBtn: "EN",
+          themeLight: "☀️ สว่าง",
+          themeDark: "🌙 มืด"
+        }
+      };
+
+      let currentLang = localStorage.getItem('lang') || 'en';
+      let isLightMode = document.documentElement.classList.contains('light-mode');
+
+      const langToggle = document.getElementById('lang-toggle');
+      const themeToggle = document.getElementById('theme-toggle');
+
+      function updateLanguage() {
+        const t = translations[currentLang];
+        document.getElementById('hero-title').innerHTML = t.heroTitle;
+        document.getElementById('hero-subtitle').innerHTML = t.heroSubtitle;
+        document.getElementById('hero-scroll').textContent = t.heroScroll;
+        document.getElementById('ft-about').textContent = t.ftAbout;
+        
+        langToggle.textContent = t.langBtn;
+        themeToggle.textContent = isLightMode ? t.themeDark : t.themeLight;
+      }
+
+      function toggleLanguage() {
+        currentLang = currentLang === 'en' ? 'th' : 'en';
+        localStorage.setItem('lang', currentLang);
+        updateLanguage();
+      }
+
+      function toggleTheme() {
+        isLightMode = !isLightMode;
+        if(isLightMode) {
+          document.documentElement.classList.add('light-mode');
+          localStorage.setItem('theme', 'light');
+        } else {
+          document.documentElement.classList.remove('light-mode');
+          localStorage.setItem('theme', 'dark');
+        }
+        themeToggle.textContent = isLightMode ? translations[currentLang].themeDark : translations[currentLang].themeLight;
+      }
+
+      langToggle.addEventListener('click', toggleLanguage);
+      themeToggle.addEventListener('click', toggleTheme);
+
+      // Initialize
+      updateLanguage();
+    </script>
+  </body>
+</html>
