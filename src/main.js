@@ -19,7 +19,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 // 2. Load the Image as Texture
 const textureLoader = new THREE.TextureLoader();
 // เราจะดึงรูปจากโฟลเดอร์ public/bg.png
-const bgTexture = textureLoader.load('/bg.png');
+const bgTexture = textureLoader.load('./bg.png');
 
 // สร้างแผ่นสี่เหลี่ยม (Plane) สำหรับแปะรูป
 const geometry = new THREE.PlaneGeometry(16, 9); // สัดส่วน 16:9
